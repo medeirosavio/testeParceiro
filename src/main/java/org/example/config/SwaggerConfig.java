@@ -27,8 +27,8 @@ public class SwaggerConfig implements Ordered {
         return new ApiInfoBuilder()
                 .title("Teste Parceiro API")
                 .description("A empresa Parceiro Soluções decidiu aplicar um teste de" +
-                        "conhecimentos específicos em Back-end pra os candidatos a uma" +
-                        "vaga de desenvolvedor Back-End. ")
+                        " conhecimentos específicos em uma aplicação CRUD para a vaga de" +
+                        " desenvolvedor")
                 .version("1.0.0")
                 .build();
     }
