@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,8 +26,8 @@ public abstract class Usuario {
     protected String email;
     @Column(nullable = false)
     protected String senha;
-    @Column(precision = 10, scale = 2)
-    private double saldo;
+    @Column
+    private BigDecimal saldo;
 
 }
 
