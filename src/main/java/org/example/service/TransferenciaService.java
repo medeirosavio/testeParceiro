@@ -6,7 +6,6 @@ import org.example.exception.SaldoInsuficienteException;
 import org.example.exception.UsuarioInvalidoException;
 import org.example.model.Comum;
 import org.example.model.Lojista;
-import org.example.model.Transferencia;
 import org.example.model.Usuario;
 import org.example.repository.TransferenciaRepository;
 import org.example.repository.UsuarioRepository;
@@ -15,7 +14,6 @@ import org.example.validation.TransferenciaValidator;
 import org.example.validation.UsuarioValidator;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +24,7 @@ public class TransferenciaService {
     private final UsuarioValidator usuarioValidator = new UsuarioValidator();
     private final TransferenciaValidator transferenciaValidator = new TransferenciaValidator();
     private final SaldoValidator saldoValidator = new SaldoValidator();
+    private final CpfValidator cpfValidator = new CpfValidator();
 
     public void realizarTransferencia(UsuarioDTO remetenteDTO, UsuarioDTO destinatarioDTO, BigDecimal valor) {
         try {
@@ -35,6 +34,8 @@ public class TransferenciaService {
             transferenciaValidator.validarRemetente(remetente);
             usuarioValidator.validarSaldo(remetente, valor);
             saldoValidator.validarSaldo(remetente,valor);
+            usuarioValidator.validarUsuarioExistente(remetente.getId());
+            usuarioValidator.validarUsuarioExistente(destinatario.getId());
 
             remetente.setSaldo(remetente.getSaldo().subtract(valor));
             destinatario.setSaldo(destinatario.getSaldo().add(valor));
@@ -71,5 +72,7 @@ public class TransferenciaService {
 
         return usuario;
     }
+
+
 }
 
