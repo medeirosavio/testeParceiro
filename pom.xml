@@ -58,6 +58,14 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>7.0.1.Final</version> <!-- Ou a versão mais recente -->
+        </dependency>
+
+
+
     </dependencies>
 
 </project>

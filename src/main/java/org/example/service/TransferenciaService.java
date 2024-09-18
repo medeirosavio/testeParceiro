@@ -1,11 +1,18 @@
 package org.example.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.dto.UsuarioDTO;
+import org.example.exception.SaldoInsuficienteException;
+import org.example.exception.UsuarioInvalidoException;
+import org.example.model.Comum;
 import org.example.model.Lojista;
 import org.example.model.Transferencia;
 import org.example.model.Usuario;
 import org.example.repository.TransferenciaRepository;
 import org.example.repository.UsuarioRepository;
+import org.example.validation.SaldoValidator;
+import org.example.validation.TransferenciaValidator;
+import org.example.validation.UsuarioValidator;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,37 +23,53 @@ public class TransferenciaService {
 
     private final TransferenciaRepository transferenciaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioValidator usuarioValidator = new UsuarioValidator();
+    private final TransferenciaValidator transferenciaValidator = new TransferenciaValidator();
+    private final SaldoValidator saldoValidator = new SaldoValidator();
 
-    public Transferencia realizarTransferencia(Usuario remetente, Usuario destinatario, BigDecimal valor) {
-        // Validar que o remetente não é um lojista
-        if (remetente instanceof Lojista) {
-            throw new IllegalArgumentException("Lojistas não podem realizar transferências.");
+    public void realizarTransferencia(UsuarioDTO remetenteDTO, UsuarioDTO destinatarioDTO, BigDecimal valor) {
+        try {
+            Usuario remetente = converterParaEntidade(remetenteDTO, false);
+            Usuario destinatario = converterParaEntidade(destinatarioDTO, true);
+
+            transferenciaValidator.validarRemetente(remetente);
+            usuarioValidator.validarSaldo(remetente, valor);
+            saldoValidator.validarSaldo(remetente,valor);
+
+            remetente.setSaldo(remetente.getSaldo().subtract(valor));
+            destinatario.setSaldo(destinatario.getSaldo().add(valor));
+
+            usuarioRepository.save(remetente);
+            usuarioRepository.save(destinatario);
+
+            remetente.setSaldo(remetente.getSaldo().subtract(valor));
+            destinatario.setSaldo(destinatario.getSaldo().add(valor));
+
+            System.out.println("Transferência realizada com sucesso!");
+
+        } catch (UsuarioInvalidoException | SaldoInsuficienteException e) {
+            System.err.println("Erro ao realizar transferência: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Erro inesperado: " + e.getMessage());
+        }
+    }
+
+    public Usuario converterParaEntidade(UsuarioDTO usuarioDTO, boolean isLojista) {
+        Usuario usuario;
+
+        if (isLojista) {
+            usuario = new Lojista();
+        } else {
+            usuario = new Comum();
         }
 
-        // Validar se o remetente tem saldo suficiente
-        if (remetente.getSaldo().compareTo(valor) < 0) {
-            throw new IllegalArgumentException("Saldo insuficiente para realizar a transferência.");
-        }
+        usuario.setNomeCompleto(usuarioDTO.getNomeCompleto());
+        usuario.setCpf(usuarioDTO.getCpf());
+        usuario.setEmail(usuarioDTO.getEmail());
+        usuario.setSenha(usuarioDTO.getSenha());
+        usuario.setSaldo(usuarioDTO.getSaldo());
 
-        // Deduzir o saldo do remetente
-        remetente.setSaldo(remetente.getSaldo().subtract(valor));
-
-        // Adicionar o valor ao saldo do destinatário
-        destinatario.setSaldo(destinatario.getSaldo().add(valor));
-
-        // Persistir as mudanças nos usuários
-        usuarioRepository.save(remetente);
-        usuarioRepository.save(destinatario);
-
-        // Criar a transferência
-        Transferencia transferencia = new Transferencia();
-        transferencia.setRemetente(remetente);
-        transferencia.setDestinatario(destinatario);
-        transferencia.setValor(valor);
-        transferencia.setDataHoraTransacao(LocalDateTime.now());
-
-        // Salvar a transferência
-        return transferenciaRepository.save(transferencia);
+        return usuario;
     }
 }
 
