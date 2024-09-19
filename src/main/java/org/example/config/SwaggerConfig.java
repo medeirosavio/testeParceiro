@@ -39,4 +39,3 @@ public class SwaggerConfig implements Ordered {
     }
 }
 
-
