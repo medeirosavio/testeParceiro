@@ -15,9 +15,9 @@ public class UsuarioValidator {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public Usuario validarUsuarioExistente(Long id) throws UsuarioNaoEncontradoException {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário com ID " + id + " não encontrado."));
+    public Usuario validarUsuarioExistente(String cpf) throws UsuarioNaoEncontradoException {
+        return usuarioRepository.findByCpf(cpf)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário com ID " + cpf + " não encontrado."));
     }
 
     public void validarSaldo(Usuario usuario, BigDecimal valor) {

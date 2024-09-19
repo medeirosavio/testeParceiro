@@ -22,7 +22,7 @@ public class Transferencia {
 
     @ManyToOne
     @JoinColumn(name = "remetente_id", nullable = false)
-    private Usuario remetente;
+    private Comum remetente;
 
     @ManyToOne
     @JoinColumn(name = "destinatario_id", nullable = false)

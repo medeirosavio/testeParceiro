@@ -24,7 +24,6 @@ public class TransferenciaService {
     private final UsuarioValidator usuarioValidator = new UsuarioValidator();
     private final TransferenciaValidator transferenciaValidator = new TransferenciaValidator();
     private final SaldoValidator saldoValidator = new SaldoValidator();
-    private final CpfValidator cpfValidator = new CpfValidator();
 
     public void realizarTransferencia(UsuarioDTO remetenteDTO, UsuarioDTO destinatarioDTO, BigDecimal valor) {
         try {
@@ -34,8 +33,8 @@ public class TransferenciaService {
             transferenciaValidator.validarRemetente(remetente);
             usuarioValidator.validarSaldo(remetente, valor);
             saldoValidator.validarSaldo(remetente,valor);
-            usuarioValidator.validarUsuarioExistente(remetente.getId());
-            usuarioValidator.validarUsuarioExistente(destinatario.getId());
+            usuarioValidator.validarUsuarioExistente(remetente.getCpf());
+            usuarioValidator.validarUsuarioExistente(destinatario.getCpf());
 
             remetente.setSaldo(remetente.getSaldo().subtract(valor));
             destinatario.setSaldo(destinatario.getSaldo().add(valor));
