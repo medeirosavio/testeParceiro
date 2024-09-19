@@ -1,18 +1,16 @@
 package org.example.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.dto.UsuarioDTO;
-import org.example.exception.SaldoInsuficienteException;
-import org.example.exception.UsuarioInvalidoException;
-import org.example.model.Comum;
-import org.example.model.Lojista;
+import org.example.config.AutorizacaoProperties;
 import org.example.model.Usuario;
-import org.example.repository.TransferenciaRepository;
 import org.example.repository.UsuarioRepository;
 import org.example.validation.SaldoValidator;
 import org.example.validation.TransferenciaValidator;
 import org.example.validation.UsuarioValidator;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 import java.math.BigDecimal;
 
 @Service
@@ -23,6 +21,9 @@ public class TransferenciaService {
     private final UsuarioValidator usuarioValidator;
     private final TransferenciaValidator transferenciaValidator;
     private final SaldoValidator saldoValidator;
+    private final RestTemplate restTemplate;
+    private final AutorizacaoProperties autorizacaoProperties;
+
 
     public String realizarTransferencia(String remetenteCpf, String destinatarioCpf, BigDecimal valor) {
         usuarioValidator.validarUsuarioExistente(remetenteCpf);
@@ -41,24 +42,46 @@ public class TransferenciaService {
         return ("Transação efetuada com sucesso!");
     }
 
-    public Usuario converterParaEntidade(UsuarioDTO usuarioDTO, boolean isLojista) {
-        Usuario usuario;
-
-        if (isLojista) {
-            usuario = new Lojista();
-        } else {
-            usuario = new Comum();
+    public boolean verificarAutorizacao() {
+        try {
+            ResponseEntity<AutorizacaoResponse> response = restTemplate.getForEntity(autorizacaoProperties.getUrl(), AutorizacaoResponse.class);
+            return response.getBody() != null && response.getBody().getData().isAuthorization();
+        } catch (Exception e) {
+            return false;
         }
-
-        usuario.setNomeCompleto(usuarioDTO.getNomeCompleto());
-        usuario.setCpf(usuarioDTO.getCpf());
-        usuario.setEmail(usuarioDTO.getEmail());
-        usuario.setSenha(usuarioDTO.getSenha());
-        usuario.setSaldo(usuarioDTO.getSaldo());
-
-        return usuario;
     }
 
+    private static class AutorizacaoResponse {
+        private String status;
+        private Data data;
 
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public Data getData() {
+            return data;
+        }
+
+        public void setData(Data data) {
+            this.data = data;
+        }
+
+        public static class Data {
+            private boolean authorization;
+
+            public boolean isAuthorization() {
+                return authorization;
+            }
+
+            public void setAuthorization(boolean authorization) {
+                this.authorization = authorization;
+            }
+        }
+    }
 }
 
